@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaQuiz: Tantangan Apoteker Cerdas</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        emeraldMed: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        clinicalBlue: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: radial-gradient(circle at top right, #d1fae5 0%, #eff6ff 45%, #f8fafc 100%);
+            min-height: 100vh;
+        }
+
+        /* Pola Latar Medis Halus */
+        .medical-pattern {
+            background-image: radial-gradient(#059669 0.6px, transparent 0.6px);
+            background-size: 20px 20px;
+            opacity: 0.06;
+        }
+
+        /* Animasi Kartu & Umpan Balik */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-pop {
+            animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes pulseScore {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.18); color: #10b981; }
+        }
+        .score-bump {
+            animation: pulseScore 0.4s ease-in-out;
+        }
+
+        @keyframes shakeWrong {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shakeWrong 0.35s ease-in-out;
+        }
+
+        /* Bingkai Sertifikat Digital */
+        .certificate-border {
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(135deg, #059669 0%, #2563eb 50%, #059669 100%) border-box;
+            border: 4px solid transparent;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased relative selection:bg-emerald-200 selection:text-emerald-950 flex flex-col min-h-screen">
+
+    <!-- Background Pattern Overlay -->
+    <div class="fixed inset-0 medical-pattern pointer-events-none z-0"></div>
+
+    <!-- ==================== HEADER GLOBAL RINGKAS ==================== -->
+    <header class="relative z-10 bg-white/85 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-clinicalBlue-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/20">
+                    <i class="fa-solid fa-mortar-pestle text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-extrabold text-lg tracking-tight text-slate-900">PharmaQuiz</span>
+                        <span class="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            Edukasi Farmasi
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500">Tantangan Apoteker Cerdas & Uji Kompetensi Klinis</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+                <i class="fa-solid fa-shield-virus text-emerald-600"></i>
+                <span>Purwarupa Gim Kefarmasian v2.0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN CONTAINER ==================== -->
+    <main class="relative z-10 flex-grow flex items-center justify-center px-4 sm:px-6 py-6 sm:py-10">
+        <div class="max-w-4xl w-full">
+
+            <!-- =====================================================================
+                 1. LAYAR BERANDA (START SCREEN)
+            ====================================================================== -->
+            <section id="screen-start" class="animate-pop bg-white rounded-3xl shadow-xl shadow-slate-200/70 border border-slate-200/90 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12">
+                    
+                    <!-- Kolom Kiri: Visual & Informasi Purwarupa -->
+                    <div class="lg:col-span-5 bg-gradient-to-br from-emerald-800 via-emerald-700 to-clinicalBlue-900 text-white p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+                        <div class="relative z-10">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-xs font-semibold mb-5">
+                                <i class="fa-solid fa-capsules text-emerald-300"></i>
+                                <span>Media Pembelajaran Interaktif</span>
+                            </div>
+                            <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight mb-3">
+                                PharmaQuiz:<br>
+                                <span class="text-emerald-300">Tantangan Apoteker Cerdas</span>
+                            </h1>
+                            <p class="text-xs sm:text-sm text-emerald-100/90 leading-relaxed mb-6">
+                                Uji ketelitian klinis, kalkulasi dosis pediatrik, skrining interaksi obat, stabilitas sediaan (BUD), hingga aturan penandaan etiket apotek berbasis kasus nyata.
+                            </p>
+                        </div>
+
+                        <!-- Statistik Fitur Gim -->
+                        <div class="relative z-10 space-y-2.5 text-xs">
+                            <div class="flex items-center gap-3 bg-white/10 p-2.5 rounded-xl border border-white/15">
+                                <i class="fa-solid fa-heart-pulse text-rose-300 text-base w-5 text-center"></i>
+                                <span><strong>3 Nyawa Patient Safety:</strong> Setiap kesalahan mengurangi keselamatan pasien.</span>
+                            </div>
+                            <div class="flex items-center gap-3 bg-white/10 p-2.5 rounded-xl border border-white/15">
+                                <i class="fa-solid fa-bolt text-amber-300 text-base w-5 text-center"></i>
+                                <span><strong>Streak & Speed Bonus:</strong> Jawab cepat & beruntun untuk poin maksimal.</span>
+                            </div>
+                            <div class="flex items-center gap-3 bg-white/10 p-2.5 rounded-xl border border-white/15">
+                                <i class="fa-solid fa-book-medical text-sky-300 text-base w-5 text-center"></i>
+                                <span><strong>Pembahasan Klinis:</strong> Analisis ilmiah langsung pada setiap butir soal.</span>
+                            </div>
+                        </div>
+
+                        <!-- Dekorasi Lingkaran -->
+                        <div class="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-emerald-500/20 blur-xl"></div>
+                    </div>
+
+                    <!-- Kolom Kanan: Form Konfigurasi Kuis -->
+                    <div class="lg:col-span-7 p-7 sm:p-8 flex flex-col justify-between space-y-6">
+                        <div class="space-y-5">
+                            <div>
+                                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Konfigurasi Sesi Kuis</h2>
+                                <p class="text-xs text-slate-500 mt-0.5">Lengkapi identitas pemain dan pilih fokus keilmuan farmasi sebelum memulai.</p>
+                            </div>
+
+                            <!-- Input Nama Mahasiswa -->
+                            <div>
+                                <label for="input-player-name" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                                    Nama Mahasiswa / Pemain <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                        <i class="fa-solid fa-user-graduate"></i>
+                                    </span>
+                                    <input type="text" id="input-player-name" placeholder="Contoh: apt. Rina Kartika, S.Farm." class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 transition">
+                                </div>
+                                <p id="name-error-msg" class="hidden text-xs text-rose-600 font-semibold mt-1">
+                                    <i class="fa-solid fa-circle-exclamation mr-1"></i> Silakan masukkan nama pemain terlebih dahulu.
+                                </p>
+                            </div>
+
+                            <!-- Pilihan Kategori Topik -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                                    Pilih Kategori Topik Kefarmasian
+                                </label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="category-grid">
+                                    <button type="button" onclick="selectCategory('ALL')" data-cat="ALL" class="cat-btn active text-left p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50/70 transition">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="font-bold text-xs sm:text-sm text-emerald-950">Semua Topik (Komprehensif)</span>
+                                            <i class="fa-solid fa-layer-group text-emerald-600"></i>
+                                        </div>
+                                        <p class="text-[11px] text-slate-600">12 soal campuran seluruh bidang farmasi.</p>
+                                    </button>
+
+                                    <button type="button" onclick="selectCategory('FARMAKOLOGI')" data-cat="FARMAKOLOGI" class="cat-btn text-left p-3 rounded-xl border border-slate-200 bg-white hover:border-emerald-400 transition">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800">Farmakologi & Terapi</span>
+                                            <i class="fa-solid fa-heart-pulse text-clinicalBlue-600"></i>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500">Mekanisme kerja, interaksi, & antidotum.</p>
+                                    </button>
+
+                                    <button type="button" onclick="selectCategory('FARMASETIKA')" data-cat="FARMASETIKA" class="cat-btn text-left p-3 rounded-xl border border-slate-200 bg-white hover:border-emerald-400 transition">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800">Farmasetika & Peracikan</span>
+                                            <i class="fa-solid fa-flask-vial text-amber-600"></i>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500">Kalkulasi dosis anak, BUD, & stabilitas.</p>
+                                    </button>
+
+                                    <button type="button" onclick="selectCategory('PELAYANAN')" data-cat="PELAYANAN" class="cat-btn text-left p-3 rounded-xl border border-slate-200 bg-white hover:border-emerald-400 transition">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800">Pelayanan Resep & Etiket</span>
+                                            <i class="fa-solid fa-file-prescription text-purple-600"></i>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500">Bahasa Latin resep, etiket putih/biru, PIO.</p>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Pilihan Tingkat Kesulitan -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                                    Tingkat Kesulitan & Batas Waktu
+                                </label>
+                                <div class="grid grid-cols-3 gap-2.5" id="difficulty-grid">
+                                    <button type="button" onclick="selectDifficulty('DASAR')" data-diff="DASAR" class="diff-btn p-2.5 rounded-xl border border-slate-200 bg-white text-center hover:border-clinicalBlue-400 transition">
+                                        <span class="block font-bold text-xs text-slate-800">Mahasiswa Baru</span>
+                                        <span class="text-[10px] text-slate-500">35 detik / soal</span>
+                                    </button>
+                                    <button type="button" onclick="selectDifficulty('STANDAR')" data-diff="STANDAR" class="diff-btn active p-2.5 rounded-xl border-2 border-clinicalBlue-600 bg-clinicalBlue-50 text-center transition">
+                                        <span class="block font-bold text-xs text-clinicalBlue-900">Profesi Apoteker</span>
+                                        <span class="text-[10px] text-clinicalBlue-700 font-semibold">30 detik / soal</span>
+                                    </button>
+                                    <button type="button" onclick="selectDifficulty('KLINIS')" data-diff="KLINIS" class="diff-btn p-2.5 rounded-xl border border-slate-200 bg-white text-center hover:border-clinicalBlue-400 transition">
+                                        <span class="block font-bold text-xs text-slate-800">Ujian UKAI Cepat</span>
+                                        <span class="text-[10px] text-slate-500">20 detik / soal</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Mulai Kuis -->
+                        <button onclick="startQuiz()" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-clinicalBlue-600 hover:from-emerald-700 hover:to-clinicalBlue-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2.5 transition transform active:scale-[0.99]">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Mulai Kuis Sekarang</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =====================================================================
+                 2. LAYAR PERMAINAN KUIS (GAMEPLAY SCREEN)
+            ====================================================================== -->
+            <section id="screen-gameplay" class="hidden space-y-5">
+                
+                <!-- TOP HUD BAR -->
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200/90 p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                        <!-- Info Pemain & Nomor Soal -->
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-clinicalBlue-50 border border-clinicalBlue-200 text-clinicalBlue-700 flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-user-doctor"></i>
+                            </div>
+                            <div>
+                                <p id="hud-player-name" class="font-bold text-xs sm:text-sm text-slate-900">Mahasiswa Farmasi</p>
+                                <div class="flex items-center gap-2">
+                                    <span id="hud-question-counter" class="text-xs font-extrabold text-emerald-700">Soal 1/10</span>
+                                    <span class="text-slate-300">•</span>
+                                    <span id="hud-category-tag" class="text-[11px] font-semibold text-slate-500">Farmakologi</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Indikator Nyawa, Streak & Skor -->
+                        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                            <!-- Nyawa / Patient Safety Hearts -->
+                            <div class="bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5" title="Patient Safety Lives (Nyawa Keselamatan Pasien)">
+                                <span class="text-[10px] font-bold uppercase text-rose-700 hidden sm:inline">Safety:</span>
+                                <div id="hud-hearts" class="flex items-center gap-1 text-rose-500 text-sm">
+                                    <i class="fa-solid fa-heart"></i>
+                                    <i class="fa-solid fa-heart"></i>
+                                    <i class="fa-solid fa-heart"></i>
+                                </div>
+                            </div>
+
+                            <!-- Streak Bonus -->
+                            <div id="hud-streak-box" class="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                                <i class="fa-solid fa-fire text-amber-500 text-sm"></i>
+                                <span id="hud-streak" class="font-mono font-bold text-xs sm:text-sm text-amber-800">0x</span>
+                            </div>
+
+                            <!-- Skor Real-Time -->
+                            <div class="bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-xl flex items-center gap-2">
+                                <i class="fa-solid fa-trophy text-emerald-600 text-sm"></i>
+                                <div>
+                                    <span class="text-[9px] font-bold text-emerald-700 block leading-none">SKOR</span>
+                                    <span id="hud-score" class="font-mono font-extrabold text-sm sm:text-base text-emerald-900">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timer & Progress Bar Visual -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-semibold text-slate-500 flex items-center gap-1.5">
+                                <i class="fa-regular fa-clock text-clinicalBlue-600"></i> Sisa Waktu Menjawab
+                            </span>
+                            <span id="hud-timer-text" class="font-mono font-extrabold text-clinicalBlue-700">30 detik</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/70">
+                            <div id="hud-timer-bar" class="h-full bg-gradient-to-r from-emerald-500 to-clinicalBlue-500 transition-all duration-300 rounded-full" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KARTU SOAL KASUS FARMASI -->
+                <div id="question-card" class="animate-pop bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/90 p-6 sm:p-8 space-y-6">
+                    
+                    <!-- Badge Topik & Tipe Soal -->
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span id="q-topic-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-clinicalBlue-50 text-clinicalBlue-800 border border-clinicalBlue-200">
+                            <i class="fa-solid fa-stethoscope"></i> Studi Kasus Klinis
+                        </span>
+                        <span id="q-points-badge" class="text-xs font-mono font-semibold text-slate-500">
+                            Nilai Dasar: +100 Poin
+                        </span>
+                    </div>
+
+                    <!-- Teks Pertanyaan -->
+                    <div class="space-y-3">
+                        <h2 id="q-text" class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+                            Memuat pertanyaan kasus farmasi...
+                        </h2>
+                        <!-- Kotak Resep / Data Klinis Tambahan (Jika Ada) -->
+                        <div id="q-case-box" class="hidden bg-slate-50 border-l-4 border-emerald-600 p-4 rounded-r-2xl font-mono text-xs sm:text-sm text-slate-800 space-y-1">
+                        </div>
+                    </div>
+
+                    <!-- Pilihan Jawaban (A, B, C, D) -->
+                    <div id="options-container" class="grid grid-cols-1 gap-3">
+                        <!-- Di-render secara dinamis -->
+                    </div>
+
+                    <!-- KOTAK PEMBAHASAN FARMASI KLINIS (Muncul Setelah Menjawab) -->
+                    <div id="rationale-panel" class="hidden animate-pop rounded-2xl border-2 p-5 space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5">
+                                <div id="rationale-icon" class="w-8 h-8 rounded-xl flex items-center justify-center text-white text-sm font-bold">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div>
+                                    <h3 id="rationale-status-title" class="font-extrabold text-sm sm:text-base">Jawaban Tepat!</h3>
+                                    <p id="rationale-points-earned" class="text-xs font-mono font-bold">+120 Poin (Termasuk Bonus Waktu & Streak)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-black/10">
+                            <p class="text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-microscope text-emerald-700"></i> Pembahasan Farmasi Klinis:
+                            </p>
+                            <p id="rationale-explanation" class="text-xs sm:text-sm text-slate-800 leading-relaxed">
+                                Penjelasan ilmiah jawaban...
+                            </p>
+                        </div>
+
+                        <div class="pt-2 flex justify-end">
+                            <button onclick="nextQuestion()" id="btn-next-question" class="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md transition">
+                                <span>Soal Berikutnya</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- =====================================================================
+                 3. LAYAR HASIL AKHIR & SERTIFIKAT SKOR (RESULT SCREEN)
+            ====================================================================== -->
+            <section id="screen-result" class="hidden animate-pop space-y-6">
+                
+                <!-- Kartu Sertifikat Kelulusan -->
+                <div class="certificate-border rounded-3xl shadow-2xl p-6 sm:p-10 bg-white relative overflow-hidden">
+                    <!-- Watermark Medis -->
+                    <div class="absolute top-6 right-6 text-emerald-600/10 text-8xl pointer-events-none">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+
+                    <!-- Header Sertifikat -->
+                    <div class="text-center border-b border-slate-200 pb-6 mb-6">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-3">
+                            <i class="fa-solid fa-certificate text-emerald-600"></i>
+                            <span>Sertifikat Evaluasi Kompetensi Farmasi</span>
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Hasil Simulasi PharmaQuiz</h2>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">Diberikan kepada peserta uji kompetensi interaktif:</p>
+                        
+                        <div class="mt-4">
+                            <p id="res-player-name" class="text-xl sm:text-2xl font-extrabold text-clinicalBlue-800 underline decoration-emerald-400 decoration-2 underline-offset-8">
+                                Nama Mahasiswa
+                            </p>
+                            <p id="res-meta-info" class="text-xs text-slate-500 mt-2.5">
+                                Kategori: Semua Topik • Tingkat: Profesi Apoteker
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Predikat Kelulusan & 4 Metrik Utama -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center mb-6">
+                        <!-- Badge Predikat -->
+                        <div class="md:col-span-5 bg-gradient-to-br from-emerald-50 to-clinicalBlue-50 border border-emerald-200 rounded-2xl p-5 text-center">
+                            <div id="res-medal-icon" class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-clinicalBlue-600 text-white flex items-center justify-center text-3xl shadow-lg mb-3">
+                                <i class="fa-solid fa-user-graduate"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Predikat Kelulusan</span>
+                            <h3 id="res-predicate" class="text-lg sm:text-xl font-extrabold text-emerald-900 mt-0.5">Apoteker Teladan</h3>
+                            <p id="res-predicate-desc" class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                                Penguasaan farmasi klinis dan ketelitian pelayanan resep sangat baik!
+                            </p>
+                        </div>
+
+                        <!-- 4 Kotak Statistik -->
+                        <div class="md:col-span-7 grid grid-cols-2 gap-3.5">
+                            <div class="bg-slate-50 border border-slate-200/80 p-4 rounded-2xl">
+                                <span class="text-xs font-semibold text-slate-500 block">Total Skor Akhir</span>
+                                <span id="res-total-score" class="font-mono font-extrabold text-2xl text-emerald-700 mt-1 block">1,250</span>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200/80 p-4 rounded-2xl">
+                                <span class="text-xs font-semibold text-slate-500 block">Akurasi Jawaban</span>
+                                <span id="res-accuracy" class="font-mono font-extrabold text-2xl text-clinicalBlue-700 mt-1 block">90%</span>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200/80 p-4 rounded-2xl">
+                                <span class="text-xs font-semibold text-slate-500 block">Jawaban Benar</span>
+                                <span id="res-correct-count" class="font-mono font-extrabold text-xl text-slate-800 mt-1 block">9 / 10 Soal</span>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200/80 p-4 rounded-2xl">
+                                <span class="text-xs font-semibold text-slate-500 block">Sisa Nyawa Safety</span>
+                                <span id="res-hearts-left" class="font-mono font-extrabold text-xl text-rose-600 mt-1 block">3 / 3 ❤️</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ringkasan Review Setiap Soal -->
+                    <div class="border-t border-slate-200 pt-6">
+                        <h4 class="font-extrabold text-sm text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-list text-clinicalBlue-600"></i>
+                            <span>Ringkasan Evaluasi Butir Soal</span>
+                        </h4>
+                        <div id="res-review-list" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                            <!-- Item review di-render via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Tombol Aksi Akhir -->
+                    <div class="mt-7 pt-5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-center gap-3">
+                        <button onclick="restartSameCategory()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition">
+                            <i class="fa-solid fa-rotate-right"></i>
+                            <span>Main Lagi (Kategori Sama)</span>
+                        </button>
+                        <button onclick="backToHome()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-clinicalBlue-600 hover:bg-clinicalBlue-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-clinicalBlue-600/20 transition">
+                            <i class="fa-solid fa-grid-2"></i>
+                            <span>Ganti Kategori / Beranda</span>
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <!-- ==================== BANK SOAL & LOGIKA APLIKASI ==================== -->
+    <script>
+        // Bank Soal Farmasi Tingkat Perguruan Tinggi (12 Soal Berkualitas)
+        const QUESTION_BANK = [
+            {
+                id: 1,
+                category: 'FARMASETIKA',
+                categoryLabel: 'Farmasetika & Peracikan',
+                question: 'Seorang anak berusia 5 tahun dengan berat badan 18 kg mengalami demam tinggi. Dokter meresepkan Paracetamol sirup (120 mg/5 mL) dengan dosis 10 mg/kgBB sekali minum. Berapa volume (mL) sirup yang harus diberikan kepada pasien untuk satu kali minum?',
+                caseDetail: 'Data Klinis: BB = 18 kg | Dosis = 10 mg/kgBB | Sediaan = Paracetamol Sirup 120 mg/5 mL',
+                options: [
+                    '5,0 mL (1 sendok takar)',
+                    '7,5 mL (1,5 sendok takar)',
+                    '10,0 mL (2 sendok takar)',
+                    '12,5 mL (2,5 sendok takar)'
+                ],
+                correctIndex: 1,
+                rationale: 'Dosis sekali minum = 18 kg × 10 mg/kgBB = 180 mg. Volume sirup yang dibutuhkan = (180 mg / 120 mg) × 5 mL = 7,5 mL (setara 1,5 sendok takar ukuran 5 mL).'
+            },
+            {
+                id: 2,
+                category: 'PELAYANAN',
+                categoryLabel: 'Pelayanan Resep & Etiket',
+                question: 'Pada lembar resep dokter tertulis aturan pakai: "S. t. d. d. caps. I p. c.". Bagaimana cara penulisan aturan pakai yang tepat pada etiket obat untuk pasien?',
+                caseDetail: 'Resep: R/ Cefadroxil 500 mg No. X — S. t. d. d. caps. I p. c.',
+                options: [
+                    '3 kali sehari 1 kapsul, sebelum makan',
+                    '2 kali sehari 1 kapsul, sesudah makan',
+                    '3 kali sehari 1 kapsul, sesudah makan',
+                    '3 kali sehari 1 kapsul, saat sedang makan'
+                ],
+                correctIndex: 2,
+                rationale: 'Singkatan Latin: S (Signa = tandai), t.d.d. (ter de die = 3 kali sehari), caps. I (capsula una = 1 kapsul), p.c. (post coenam = sesudah makan). Jadi dibaca: 3 kali sehari 1 kapsul sesudah makan.'
+            },
+            {
+                id: 3,
+                category: 'FARMAKOLOGI',
+                categoryLabel: 'Farmakologi & Terapi',
+                question: 'Pasien hipertensi yang rutin mengonsumsi Kaptopril mengeluhkan batuk kering yang persisten tanpa disertai infeksi saluran napas. Mediator apa yang terakumulasi akibat penghambatan enzim ACE sehingga memicu efek samping tersebut?',
+                caseDetail: null,
+                options: [
+                    'Angiotensin II',
+                    'Bradikinin dan Substansi P',
+                    'Aldosteron',
+                    'Histamin dan Leukotrien'
+                ],
+                correctIndex: 1,
+                rationale: 'ACE (Angiotensin-Converting Enzyme) juga berperan mendegradasi bradikinin. Penghambatan ACE oleh Kaptopril menyebabkan akumulasi bradikinin dan substansi P di saluran napas yang memicu refleks batuk kering.'
+            },
+            {
+                id: 4,
+                category: 'FARMASETIKA',
+                categoryLabel: 'Farmasetika & Peracikan',
+                question: 'Menurut pedoman USP <795>, berapa lama Beyond Use Date (BUD) maksimal untuk sediaan racikan puyer (serbuk bagi) yang dibuat dari tablet komersial tanpa penambahan air dan disimpan pada suhu ruang terkendali?',
+                caseDetail: null,
+                options: [
+                    '14 hari sejak tanggal peracikan',
+                    '30 hari sejak tanggal peracikan',
+                    '6 bulan atau tidak melebihi waktu kedaluwarsa terpendek bahan obat (mana yang lebih singkat)',
+                    '1 tahun sejak tanggal penyerahan obat'
+                ],
+                correctIndex: 2,
+                rationale: 'Untuk sediaan non-aqueous (tidak mengandung air) seperti puyer atau kapsul racikan yang berasal dari produk manufaktur, USP menetapkan BUD maksimal 6 bulan atau tidak lebih dari waktu kedaluwarsa (ED) masing-masing komponen, dipilih mana yang lebih singkat.'
+            },
+            {
+                id: 5,
+                category: 'PELAYANAN',
+                categoryLabel: 'Pelayanan Resep & Etiket',
+                question: 'Apoteker menyiapkan dua sediaan berbeda untuk satu pasien: (1) Tablet Nystatin oral untuk kandidiasis mulut dan (2) Ovula Nystatin vaginal. Warna etiket yang paling tepat untuk kedua sediaan tersebut berturut-turut adalah...',
+                caseDetail: null,
+                options: [
+                    'Keduanya menggunakan Etiket Putih',
+                    'Keduanya menggunakan Etiket Biru',
+                    'Etiket Biru untuk tablet oral, dan Etiket Putih untuk ovula',
+                    'Etiket Putih untuk tablet oral, dan Etiket Biru untuk ovula'
+                ],
+                correctIndex: 3,
+                rationale: 'Berdasarkan peraturan kefarmasian, Etiket Putih digunakan untuk obat dalam (melalui saluran cerna/oral), sedangkan Etiket Biru digunakan untuk obat luar dan sediaan lokal non-oral seperti ovula, supositoria, tetes mata, dan salep.'
+            },
+            {
+                id: 6,
+                category: 'FARMAKOLOGI',
+                categoryLabel: 'Farmakologi & Terapi',
+                question: 'Seorang pasien dilarikan ke IGD karena overdosis Paracetamol akut (15 gram dalam 2 jam terakhir) yang berisiko menyebabkan nekrosis hepatoseluler berat. Antidotum spesifik yang harus segera diberikan adalah...',
+                caseDetail: null,
+                options: [
+                    'Nalokson',
+                    'N-Asetilsistein (NAC)',
+                    'Atropin Sulfat',
+                    'Flumazenil'
+                ],
+                correctIndex: 1,
+                rationale: 'Metabolit toksik paracetamol (NAPQI) menguras cadangan glutation hati. N-Asetilsistein (NAC) bertindak sebagai prekursor glutation untuk mendetoksifikasi NAPQI dan mencegah gagal hati akut.'
+            },
+            {
+                id: 7,
+                category: 'FARMAKOLOGI',
+                categoryLabel: 'Farmakologi & Terapi',
+                question: 'Penggunaan Simvastatin secara bersamaan dengan antibiotik Klaritromisin sangat tidak dianjurkan karena dapat meningkatkan risiko miopati hingga rabdomiolisis. Mekanisme interaksi obat yang terjadi adalah...',
+                caseDetail: null,
+                options: [
+                    'Klaritromisin menghambat enzim CYP3A4 sehingga kadar Simvastatin dalam darah meningkat tajam',
+                    'Klaritromisin menginduksi enzim CYP3A4 sehingga menurunkan efektivitas Simvastatin',
+                    'Pembentukan kelat tidak larut di saluran cerna',
+                    'Kompetisi sekresi aktif di tubulus proksimal ginjal'
+                ],
+                correctIndex: 0,
+                rationale: 'Klaritromisin adalah inhibitor kuat enzim sitokrom P450 3A4 (CYP3A4). Karena Simvastatin dimetabolisme utama oleh CYP3A4, penghambatan ini menyebabkan konsentrasi plasma Simvastatin melonjak dan memicu toksisitas otot (rabdomiolisis).'
+            },
+            {
+                id: 8,
+                category: 'FARMASETIKA',
+                categoryLabel: 'Farmasetika & Peracikan',
+                question: 'Ibu pasien menanyakan cara penyimpanan sirup kering antibiotik Amoxicillin setelah direkonstitusi dengan air matang. Informasi stabilitas (BUD) yang benar disampaikan oleh apoteker adalah...',
+                caseDetail: null,
+                options: [
+                    'Dapat disimpan hingga tanggal kedaluwarsa yang tertera pada botol',
+                    'Stabil selama 7 hari pada suhu ruang atau hingga 14 hari di lemari es (2–8°C)',
+                    'Harus dibuang setelah 24 jam dilarutkan',
+                    'Simpan di dalam freezer agar tidak ditumbuhi bakteri'
+                ],
+                correctIndex: 1,
+                rationale: 'Suspensi kering antibiotik yang telah direkonstitusi dengan air mengalami hidrolisis cincin beta-laktam secara bertahap. Umumnya Amoxicillin sirup setelah dilarutkan bertahan selama 7 hari pada suhu ruang atau 14 hari pada suhu dingin (2–8°C), dan tidak boleh dibekukan.'
+            },
+            {
+                id: 9,
+                category: 'PELAYANAN',
+                categoryLabel: 'Pelayanan Resep & Etiket',
+                question: 'Pasien dewasa mendapatkan resep Amoxicillin 500 mg tablet dan Antasida DOEN tablet kunyah. Bagaimana edukasi waktu minum obat (PIO) yang tepat agar absorpsi kedua obat optimal?',
+                caseDetail: null,
+                options: [
+                    'Diminum bersamaan sekaligus sesudah makan',
+                    'Antasida diminum 1 jam sebelum makan (dikunyah), dan Amoxicillin diminum sesudah makan dengan jeda minimal 2 jam',
+                    'Amoxicillin dilarutkan bersama Antasida dalam segelas air',
+                    'Antasida diminum hanya jika timbul reaksi alergi antibiotik'
+                ],
+                correctIndex: 1,
+                rationale: 'Antasida paling efektif menetralkan asam lambung saat diminum 30–60 menit sebelum makan (atau 2 jam sesudah makan) dengan cara dikunyah. Memberi jeda minimal 2 jam mencegah perubahan pH lambung atau adsorpsi yang mengganggu ketersediaan hayati obat lain.'
+            },
+            {
+                id: 10,
+                category: 'FARMAKOLOGI',
+                categoryLabel: 'Farmakologi & Terapi',
+                question: 'Golongan antibiotik berikut ini bekerja dengan cara menghambat sintesis dinding sel bakteri melalui ikatan dengan Penicillin-Binding Proteins (PBPs), KECUALI...',
+                caseDetail: null,
+                options: [
+                    'Amoksisilin',
+                    'Seftriakson',
+                    'Meropenem',
+                    'Azitromisin'
+                ],
+                correctIndex: 3,
+                rationale: 'Amoksisilin (penisilin), Seftriakson (sefalosporin), dan Meropenem (karbapenem) termasuk antibiotik beta-laktam yang menghambat sintesis dinding sel bakteri. Sementara Azitromisin adalah golongan makrolida yang menghambat sintesis protein bakteri pada subunit ribosom 50S.'
+            },
+            {
+                id: 11,
+                category: 'PELAYANAN',
+                categoryLabel: 'Pelayanan Resep & Etiket',
+                question: 'Dalam pelayanan informasi obat (PIO) kepada pasien yang diresepkan tablet Sublingual Isosorbid Dinitrat (ISDN) 5 mg untuk serangan angina pektoris akut, cara penggunaan yang wajib dijelaskan adalah...',
+                caseDetail: null,
+                options: [
+                    'Ditelan utuh dengan segelas air putih sesudah makan',
+                    'Dikunyah hingga hancur lalu ditelan',
+                    'Diletakkan di bawah lidah hingga larut sempurna tanpa ditelan atau dikunyah',
+                    'Dilarutkan ke dalam setengah gelas air hangat sebelum diminum'
+                ],
+                correctIndex: 2,
+                rationale: 'Tablet sublingual diletakkan di bawah lidah agar zat aktif langsung diabsorpsi melalui mukosa sublingual masuk ke sirkulasi sistemik, menghindari metabolisme lintas pertama (first-pass metabolism) di hati sehingga memberikan efek antiangina yang sangat cepat.'
+            },
+            {
+                id: 12,
+                category: 'FARMASETIKA',
+                categoryLabel: 'Farmasetika & Peracikan',
+                question: 'Apoteker akan membuat 10 bungkus puyer yang masing-masing mengandung Paracetamol 250 mg. Jika di apotek hanya tersedia tablet Paracetamol kekuatan 500 mg, berapa banyak tablet Paracetamol 500 mg yang harus diambil?',
+                caseDetail: 'Resep: R/ Paracetamol 250 mg — m.f. pulv. dtd. No. X',
+                options: [
+                    '2,5 tablet',
+                    '5 tablet',
+                    '10 tablet',
+                    '20 tablet'
+                ],
+                correctIndex: 1,
+                rationale: 'Perintah "dtd" (da tales doses) artinya berikan sekian takaran seperti yang tertulis untuk setiap bungkus. Total Paracetamol = 10 bungkus × 250 mg = 2.500 mg. Jumlah tablet 500 mg yang dibutuhkan = 2.500 mg / 500 mg = 5 tablet.'
+            }
+        ];
+
+        // State Aplikasi
+        let selectedCategory = 'ALL';
+        let selectedDifficulty = 'STANDAR';
+        let timePerQuestion = 30;
+        let playerName = '';
+
+        let activeQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let hearts = 3;
+        let streak = 0;
+        let timer = 30;
+        let timerInterval = null;
+        let isAnswered = false;
+        let quizHistory = []; // Menyimpan log benar/salah untuk sertifikat akhir
+
+        // Pemilih Kategori di Beranda
+        function selectCategory(cat) {
+            selectedCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.className = 'cat-btn active text-left p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50/70 transition';
+                } else {
+                    btn.className = 'cat-btn text-left p-3 rounded-xl border border-slate-200 bg-white hover:border-emerald-400 transition';
+                }
+            });
+        }
+
+        // Pemilih Tingkat Kesulitan di Beranda
+        function selectDifficulty(diff) {
+            selectedDifficulty = diff;
+            if (diff === 'DASAR') timePerQuestion = 35;
+            else if (diff === 'STANDAR') timePerQuestion = 30;
+            else timePerQuestion = 20;
+
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                if (btn.dataset.diff === diff) {
+                    btn.className = 'diff-btn active p-2.5 rounded-xl border-2 border-clinicalBlue-600 bg-clinicalBlue-50 text-center transition';
+                } else {
+                    btn.className = 'diff-btn p-2.5 rounded-xl border border-slate-200 bg-white text-center hover:border-clinicalBlue-400 transition';
+                }
+            });
+        }
+
+        // Mulai Kuis
+        function startQuiz() {
+            const nameInput = document.getElementById('input-player-name').value.trim();
+            const errEl = document.getElementById('name-error-msg');
+
+            if (!nameInput) {
+                errEl.classList.remove('hidden');
+                document.getElementById('input-player-name').focus();
+                return;
+            }
+            errEl.classList.add('hidden');
+            playerName = nameInput;
+
+            // Filter & Acak Soal sesuai kategori
+            let pool = selectedCategory === 'ALL'
+                ? [...QUESTION_BANK]
+                : QUESTION_BANK.filter(q => q.category === selectedCategory);
+
+            // Jika kategori spesifik hanya 4 soal, tambahkan soal komprehensif hingga minimal 6-10 soal atau gunakan semua yang tersedia
+            pool = shuffleArray(pool);
+            if (selectedCategory === 'ALL') {
+                activeQuestions = pool.slice(0, 10); // 10 soal komprehensif
+            } else {
+                activeQuestions = pool; // Semua soal kategori terpilih
+            }
+
+            // Reset State Permainan
+            currentIndex = 0;
+            score = 0;
+            hearts = 3;
+            streak = 0;
+            quizHistory = [];
+
+            // Update HUD Awal
+            document.getElementById('hud-player-name').textContent = playerName;
+            updateHudStats();
+
+            // Pindah Layar
+            switchScreen('gameplay');
+            renderQuestion();
+        }
+
+        // Fungsi Acak Array (Fisher-Yates)
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        // Navigasi Layar
+        function switchScreen(screenName) {
+            ['start', 'gameplay', 'result'].forEach(s => {
+                document.getElementById(`screen-${s}`).classList.add('hidden');
+            });
+            document.getElementById(`screen-${screenName}`).classList.remove('hidden');
+        }
+
+        // Update HUD (Skor, Nyawa, Streak)
+        function updateHudStats() {
+            const scoreEl = document.getElementById('hud-score');
+            scoreEl.textContent = score.toLocaleString('id-ID');
+            
+            document.getElementById('hud-streak').textContent = `${streak}x`;
+
+            // Render Nyawa Hearts
+            const heartsContainer = document.getElementById('hud-hearts');
+            let heartsHtml = '';
+            for (let i = 0; i < 3; i++) {
+                if (i < hearts) {
+                    heartsHtml += '<i class="fa-solid fa-heart text-rose-500 transition-transform"></i>';
+                } else {
+                    heartsHtml += '<i class="fa-regular fa-heart text-rose-300"></i>';
+                }
+            }
+            heartsContainer.innerHTML = heartsHtml;
+        }
+
+        // Render Soal Saat Ini
+        function renderQuestion() {
+            isAnswered = false;
+            const q = activeQuestions[currentIndex];
+
+            // Sembunyikan panel pembahasan
+            const rationalePanel = document.getElementById('rationale-panel');
+            rationalePanel.classList.add('hidden');
+
+            // Update Info Soal di HUD
+            document.getElementById('hud-question-counter').textContent = `Soal ${currentIndex + 1}/${activeQuestions.length}`;
+            document.getElementById('hud-category-tag').textContent = q.categoryLabel;
+            document.getElementById('q-topic-badge').innerHTML = `<i class="fa-solid fa-stethoscope"></i> ${q.categoryLabel}`;
+            document.getElementById('q-text').textContent = q.question;
+
+            // Kotak Data Kasus / Resep
+            const caseBox = document.getElementById('q-case-box');
+            if (q.caseDetail) {
+                caseBox.textContent = q.caseDetail;
+                caseBox.classList.remove('hidden');
+            } else {
+                caseBox.classList.add('hidden');
+            }
+
+            // Render Pilihan A, B, C, D
+            const letters = ['A', 'B', 'C', 'D'];
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = q.options.map((optText, idx) => `
+                <button type="button" onclick="handleAnswer(${idx})" id="opt-btn-${idx}" class="opt-btn w-full text-left p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-3.5 group">
+                    <span id="opt-letter-${idx}" class="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-emerald-600 group-hover:text-white text-slate-700 font-mono font-extrabold text-sm flex items-center justify-center shrink-0 transition">
+                        ${letters[idx]}
+                    </span>
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800 flex-1">${optText}</span>
+                    <span id="opt-status-icon-${idx}" class="text-lg"></span>
+                </button>
+            `).join('');
+
+            // Mulai Timer Soal
+            startQuestionTimer();
+        }
+
+        // Timer Hitung Mundur Per Soal
+        function startQuestionTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timer = timePerQuestion;
+            updateTimerVisual();
+
+            timerInterval = setInterval(() => {
+                if (timer > 0) {
+                    timer--;
+                    updateTimerVisual();
+                } else {
+                    clearInterval(timerInterval);
+                    if (!isAnswered) {
+                        handleTimeOut();
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerVisual() {
+            const textEl = document.getElementById('hud-timer-text');
+            const barEl = document.getElementById('hud-timer-bar');
+            const pct = (timer / timePerQuestion) * 100;
+
+            textEl.textContent = `${timer} detik`;
+            barEl.style.width = `${pct}%`;
+
+            if (pct <= 25) {
+                barEl.className = 'h-full bg-rose-500 transition-all duration-300 rounded-full';
+                textEl.className = 'font-mono font-extrabold text-rose-600';
+            } else if (pct <= 50) {
+                barEl.className = 'h-full bg-amber-500 transition-all duration-300 rounded-full';
+                textEl.className = 'font-mono font-extrabold text-amber-600';
+            } else {
+                barEl.className = 'h-full bg-gradient-to-r from-emerald-500 to-clinicalBlue-500 transition-all duration-300 rounded-full';
+                textEl.className = 'font-mono font-extrabold text-clinicalBlue-700';
+            }
+        }
+
+        // Penanganan Saat Waktu Habis
+        function handleTimeOut() {
+            isAnswered = true;
+            const q = activeQuestions[currentIndex];
+            streak = 0;
+            hearts = Math.max(0, hearts - 1);
+            updateHudStats();
+
+            // Tandai jawaban yang benar
+            disableAllOptions();
+            highlightCorrectOption(q.correctIndex);
+
+            quizHistory.push({
+                question: q.question,
+                category: q.categoryLabel,
+                isCorrect: false,
+                userAnswer: 'Waktu Habis (Tidak Menjawab)',
+                correctAnswer: q.options[q.correctIndex]
+            });
+
+            showRationalePanel(false, 0, 'Waktu Habis!', q.rationale);
+        }
+
+        // Penanganan Pilihan Jawaban Pemain
+        function handleAnswer(selectedIndex) {
+            if (isAnswered) return;
+            isAnswered = true;
+            clearInterval(timerInterval);
+
+            const q = activeQuestions[currentIndex];
+            const isCorrect = selectedIndex === q.correctIndex;
+            disableAllOptions();
+
+            let pointsEarned = 0;
+
+            if (isCorrect) {
+                streak++;
+                const speedBonus = timer * 3;
+                const streakBonus = (streak - 1) * 25;
+                pointsEarned = 100 + speedBonus + streakBonus;
+                score += pointsEarned;
+
+                // Efek animasi skor
+                const scoreEl = document.getElementById('hud-score');
+                scoreEl.classList.remove('score-bump');
+                void scoreEl.offsetWidth;
+                scoreEl.classList.add('score-bump');
+
+                highlightCorrectOption(selectedIndex);
+                showRationalePanel(
+                    true,
+                    pointsEarned,
+                    `Jawaban Tepat! (+${pointsEarned} Poin | Speed +${speedBonus}, Streak ${streak}x)`,
+                    q.rationale
+                );
+            } else {
+                streak = 0;
+                hearts = Math.max(0, hearts - 1);
+
+                // Highlight merah pada pilihan salah & hijau pada jawaban benar
+                const wrongBtn = document.getElementById(`opt-btn-${selectedIndex}`);
+                wrongBtn.className = 'opt-btn animate-shake w-full text-left p-4 rounded-2xl border-2 border-rose-500 bg-rose-50 flex items-center gap-3.5';
+                document.getElementById(`opt-letter-${selectedIndex}`).className = 'w-9 h-9 rounded-xl bg-rose-600 text-white font-mono font-extrabold text-sm flex items-center justify-center shrink-0';
+                document.getElementById(`opt-status-icon-${selectedIndex}`).innerHTML = '<i class="fa-solid fa-circle-xmark text-rose-600"></i>';
+
+                highlightCorrectOption(q.correctIndex);
+                showRationalePanel(
+                    false,
+                    0,
+                    'Kurang Tepat! Nyawa Patient Safety berkurang 1.',
+                    q.rationale
+                );
+            }
+
+            updateHudStats();
+
+            quizHistory.push({
+                question: q.question,
+                category: q.categoryLabel,
+                isCorrect: isCorrect,
+                userAnswer: q.options[selectedIndex],
+                correctAnswer: q.options[q.correctIndex]
+            });
+        }
+
+        function disableAllOptions() {
+            document.querySelectorAll('.opt-btn').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('cursor-default');
+            });
+        }
+
+        function highlightCorrectOption(idx) {
+            const btn = document.getElementById(`opt-btn-${idx}`);
+            btn.className = 'opt-btn w-full text-left p-4 rounded-2xl border-2 border-emerald-600 bg-emerald-50 flex items-center gap-3.5 shadow-sm';
+            document.getElementById(`opt-letter-${idx}`).className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white font-mono font-extrabold text-sm flex items-center justify-center shrink-0';
+            document.getElementById(`opt-status-icon-${idx}`).innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i>';
+        }
+
+        // Tampilkan Kotak Pembahasan Farmasi Klinis
+        function showRationalePanel(isCorrect, points, subtitle, explanation) {
+            const panel = document.getElementById('rationale-panel');
+            const iconBox = document.getElementById('rationale-icon');
+            const titleEl = document.getElementById('rationale-status-title');
+            const subEl = document.getElementById('rationale-points-earned');
+            const expEl = document.getElementById('rationale-explanation');
+            const nextBtn = document.getElementById('btn-next-question');
+
+            if (isCorrect) {
+                panel.className = 'animate-pop rounded-2xl border-2 border-emerald-300 bg-emerald-50/80 p-5 space-y-3';
+                iconBox.className = 'w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-sm font-bold shrink-0';
+                iconBox.innerHTML = '<i class="fa-solid fa-check"></i>';
+                titleEl.textContent = 'Analisis Klinis Tepat!';
+                titleEl.className = 'font-extrabold text-sm sm:text-base text-emerald-900';
+                subEl.className = 'text-xs font-mono font-bold text-emerald-700';
+            } else {
+                panel.className = 'animate-pop rounded-2xl border-2 border-rose-300 bg-rose-50/80 p-5 space-y-3';
+                iconBox.className = 'w-8 h-8 rounded-xl bg-rose-600 flex items-center justify-center text-white text-sm font-bold shrink-0';
+                iconBox.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                titleEl.textContent = 'Evaluasi Jawaban';
+                titleEl.className = 'font-extrabold text-sm sm:text-base text-rose-900';
+                subEl.className = 'text-xs font-mono font-bold text-rose-700';
+            }
+
+            subEl.textContent = subtitle;
+            expEl.textContent = explanation;
+
+            // Cek apakah game over (nyawa habis) atau soal terakhir
+            if (hearts <= 0 || currentIndex >= activeQuestions.length - 1) {
+                nextBtn.innerHTML = '<span>Lihat Sertifikat Hasil Akhir</span> <i class="fa-solid fa-award"></i>';
+            } else {
+                nextBtn.innerHTML = '<span>Soal Berikutnya</span> <i class="fa-solid fa-arrow-right"></i>';
+            }
+
+            panel.classList.remove('hidden');
+        }
+
+        // Lanjut ke Soal Berikutnya atau Layar Hasil
+        function nextQuestion() {
+            if (hearts <= 0 || currentIndex >= activeQuestions.length - 1) {
+                showResultScreen();
+            } else {
+                currentIndex++;
+                renderQuestion();
+            }
+        }
+
+        // Tampilkan Layar Hasil & Sertifikat Skor
+        function showResultScreen() {
+            clearInterval(timerInterval);
+            switchScreen('result');
+
+            const totalAnswered = quizHistory.length;
+            const correctCount = quizHistory.filter(h => h.isCorrect).length;
+            const accuracy = Math.round((correctCount / activeQuestions.length) * 100);
+
+            document.getElementById('res-player-name').textContent = playerName;
+
+            const catNames = {
+                'ALL': 'Semua Topik (Komprehensif)',
+                'FARMAKOLOGI': 'Farmakologi & Terapi',
+                'FARMASETIKA': 'Farmasetika & Peracikan',
+                'PELAYANAN': 'Pelayanan Resep & Etiket'
+            };
+            const diffNames = {
+                'DASAR': 'Mahasiswa Baru',
+                'STANDAR': 'Profesi Apoteker',
+                'KLINIS': 'Ujian UKAI Cepat'
+            };
+            document.getElementById('res-meta-info').textContent = `Kategori: ${catNames[selectedCategory]} • Tingkat: ${diffNames[selectedDifficulty]}`;
+
+            document.getElementById('res-total-score').textContent = score.toLocaleString('id-ID');
+            document.getElementById('res-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('res-correct-count').textContent = `${correctCount} / ${activeQuestions.length} Soal`;
+            document.getElementById('res-hearts-left').textContent = `${hearts} / 3 ❤️`;
+
+            // Predikat Kelulusan
+            const predTitle = document.getElementById('res-predicate');
+            const predDesc = document.getElementById('res-predicate-desc');
+            const medalIcon = document.getElementById('res-medal-icon');
+
+            if (accuracy >= 80 && hearts > 0) {
+                predTitle.textContent = 'Apoteker Teladan (Cum Laude)';
+                predTitle.className = 'text-lg sm:text-xl font-extrabold text-emerald-800 mt-0.5';
+                predDesc.textContent = 'Luar biasa! Ketelitian klinis, kalkulasi dosis, dan prinsip keselamatan pasien sangat teruji.';
+                medalIcon.innerHTML = '<i class="fa-solid fa-crown"></i>';
+            } else if (accuracy >= 60 && hearts > 0) {
+                predTitle.textContent = 'Apoteker Kompeten';
+                predTitle.className = 'text-lg sm:text-xl font-extrabold text-clinicalBlue-800 mt-0.5';
+                predDesc.textContent = 'Baik! Anda memahami konsep dasar kefarmasian dengan solid. Terus tingkatkan ketelitian waktu.';
+                medalIcon.innerHTML = '<i class="fa-solid fa-user-graduate"></i>';
+            } else {
+                predTitle.textContent = 'Perlu Evaluasi & Belajar Lagi';
+                predTitle.className = 'text-lg sm:text-xl font-extrabold text-amber-800 mt-0.5';
+                predDesc.textContent = 'Tetap semangat! Tinjau kembali pembahasan farmasi klinis di bawah untuk memperkuat pemahaman.';
+                medalIcon.innerHTML = '<i class="fa-solid fa-book-open-reader"></i>';
+            }
+
+            // Render Ringkasan Review Soal
+            const reviewList = document.getElementById('res-review-list');
+            reviewList.innerHTML = quizHistory.map((item, i) => `
+                <div class="p-3.5 rounded-2xl border ${item.isCorrect ? 'bg-emerald-50/50 border-emerald-200' : 'bg-rose-50/50 border-rose-200'} flex items-start gap-3">
+                    <div class="w-7 h-7 rounded-lg ${item.isCorrect ? 'bg-emerald-600' : 'bg-rose-600'} text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                        ${item.isCorrect ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-xmark"></i>'}
+                    </div>
+                    <div class="text-xs space-y-1 flex-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-slate-900">Soal ${i + 1} (${item.category})</span>
+                            <span class="font-bold ${item.isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${item.isCorrect ? 'Benar' : 'Salah'}</span>
+                        </div>
+                        <p class="text-slate-700 line-clamp-2">${item.question}</p>
+                        ${!item.isCorrect ? `<p class="text-rose-800 font-semibold">Jawaban Anda: ${item.userAnswer}</p>` : ''}
+                        <p class="text-emerald-800 font-semibold">Kunci Klinis: ${item.correctAnswer}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function restartSameCategory() {
+            startQuiz();
+        }
+
+        function backToHome() {
+            clearInterval(timerInterval);
+            switchScreen('start');
+        }
+    </script>
+</body>
+</html>
